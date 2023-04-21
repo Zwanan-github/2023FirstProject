@@ -4,3 +4,13 @@ spring:
     url: jdbc:mysql://localhost:3306/study2023?useUnicode=true&characterEncoding=UTF-8
     username: root
     password: 'hh031010'
+  mail:
+    host: smtp.qq.com
+    username: 3238576095@qq.com
+    password: rawzxjegvexgdbed
+    port: 587
+    properties:
+      from: 3238576095@qq.com
+      smtp:
+        socketFactory:
+          class: javax.net.ssl.SSLSocketFactory
