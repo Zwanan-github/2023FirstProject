@@ -95,7 +95,7 @@ public class SecurityConfiguration {
      */
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.addAllowedOriginPattern("http://127.0.0.1:5173/");
+        cors.addAllowedOriginPattern("http://127.0.0.1:5173");
         cors.setAllowCredentials(true);
         cors.addAllowedHeader("*");
         cors.addAllowedMethod("*");

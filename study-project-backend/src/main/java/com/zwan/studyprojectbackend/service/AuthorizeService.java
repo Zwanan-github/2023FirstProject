@@ -9,6 +9,6 @@ public interface AuthorizeService extends UserDetailsService {
      * @param email
      * @return
      */
-    boolean sendValidateEmail(String email);
+    boolean sendValidateEmail(String email, String sessionDd);
 
 }

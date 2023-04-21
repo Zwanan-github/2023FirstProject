@@ -14,3 +14,8 @@ spring:
       smtp:
         socketFactory:
           class: javax.net.ssl.SSLSocketFactory
+  redis:
+    database: 0
+    host: localhost
+    port: 6379
+

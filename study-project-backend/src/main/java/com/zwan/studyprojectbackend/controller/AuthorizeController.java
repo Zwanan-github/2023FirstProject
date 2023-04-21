@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.constraints.Pattern;
 
 @Validated
@@ -22,8 +23,9 @@ public class AuthorizeController {
     AuthorizeService authorizeService;
 
     @PostMapping("/validate-email")
-    public RestBean validateEmail(@Pattern(regexp = EMAIL_VALID) @RequestParam("email") String email) {
-        if (authorizeService.sendValidateEmail(email)) {
+    public RestBean validateEmail(@Pattern(regexp = EMAIL_VALID) @RequestParam("email") String email,
+                                  HttpSession session) {
+        if (authorizeService.sendValidateEmail(email, session.getId())) {
             return RestBean.success("邮件发送成功");
         }else {
             return RestBean.failure(400 , "邮件发送失败，请联系管理员");
