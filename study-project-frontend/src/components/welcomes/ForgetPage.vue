@@ -40,7 +40,7 @@
                   </el-input>
                 </el-col>
                 <el-col :span="8" style="text-align: right">
-                  <el-button @click="validateEmail" type="primary" :disabled="!isEmailValid || cold > 0">
+                  <el-button style="padding: 2px 2px" @click="validateEmail" type="primary" :disabled="!isEmailValid || cold > 0">
                     {{ cold > 0 ? '请稍后: ' + cold : "发送验证码" }}
                   </el-button>
                 </el-col>
@@ -50,7 +50,7 @@
           </el-form>
         </div>
         <div style="margin-top: 30px">
-          <el-button @click="()=>active++" style="width: 60%;" type="warning" plain>下一步</el-button>
+          <el-button @click="startReset" style="width: 60%;" type="warning" plain>下一步</el-button>
         </div>
       </div>
       <div v-if="active === 1" style="height: 100%">
@@ -63,7 +63,7 @@
           <el-form :model="form" :rules="rules" @validate="onValidate" ref="formRef">
             <el-form-item prop="password">
               <!--      password-->
-              <el-input v-model="form.password" :maxlength="20" type="password" placeholder="密码">
+              <el-input v-model="form.password" :maxlength="20" type="password" placeholder="新密码">
                 <template #prefix>
                   <el-icon>
                     <Lock/>
@@ -87,7 +87,7 @@
           </el-form>
         </div>
         <div style="margin-top: 30px">
-          <el-button @click="()=>active++" style="width: 60%;" type="warning" plain>下一步</el-button>
+          <el-button @click="doReset" style="width: 60%;" type="warning" plain>下一步</el-button>
         </div>
       </div>
       <div v-if="active === 2" style="height: 100%">
@@ -122,6 +122,8 @@ const active = ref(0);
 const form = reactive({
   email: '',
   code: '',
+  password: '',
+  password_repeat: ''
 })
 
 const isEmailValid = ref(true);
@@ -137,7 +139,7 @@ const formRef = ref();
 const cold = ref(0);
 
 const validateEmail = ()=> {
-  post('api/auth/validate-email', {
+  post('api/auth/validate-reset-email', {
     email: form.email
   }, (message)=>{
     ElMessage.success(message);
@@ -156,6 +158,37 @@ const validatePassword = (rule, value, callback) => {
   }
 }
 
+const startReset = ()=> {
+  formRef.value.validate((isValid) => {
+    if (isValid) {
+      post('/api/auth/start-reset', {
+        email: form.email,
+        code: form.code
+      }, () => {
+        active.value++;
+      })
+    }else {
+      ElMessage.warning('请填写你的邮件和验证码')
+    }
+  })
+}
+
+const doReset = ()=>{
+  formRef.value.validate((isValid) => {
+    if (isValid) {
+      post('/api/auth/do-reset', {
+        password: form.password
+      }, (message) => {
+        active.value++;
+        ElMessage.success(message)
+      })
+    }else {
+      ElMessage.warning('请填写你的新密码并确定')
+    }
+  })
+}
+
+
 const rules = {
   email: [
     {required: true, message: '请输入邮箱', trigger: ['blur', 'change']},
@@ -163,7 +196,8 @@ const rules = {
   ],
   code: [
     {required: true, message: '请输入验证码', trigger: ['blur', 'change']},
-  ],password: [
+  ],
+  password: [
     {required: true, message: '请输入密码', trigger: 'blur'},
     {min: 6, max: 20, message: '密码长度只能在 6 到 20 之间', trigger: ['blur', 'change']}
   ],

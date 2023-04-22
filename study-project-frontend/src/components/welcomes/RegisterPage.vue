@@ -65,7 +65,7 @@
               </el-input>
             </el-col>
             <el-col :span="8" style="text-align: right">
-              <el-button @click="validateEmail" type="primary" :disabled="!isEmailValid || cold > 0">
+              <el-button style="padding: 2px 2px" @click="validateEmail" type="primary" :disabled="!isEmailValid || cold > 0">
                 {{ cold > 0 ? '请稍后: ' + cold : "发送验证码" }}
               </el-button>
             </el-col>
@@ -153,7 +153,7 @@ const register = () => {
 const cold = ref(0);
 
 const validateEmail = ()=> {
-  post('api/auth/validate-email', {
+  post('api/auth/validate-register-email', {
     email: form.email
   }, (message)=>{
     ElMessage.success(message);
