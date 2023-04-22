@@ -48,14 +48,17 @@
 import {Lock, User} from '@element-plus/icons-vue'
 import {reactive} from "vue";
 import {ElMessage} from "element-plus";
-import {post} from "@/js";
+import {get, post} from "@/js";
 import router from "@/router";
+import {useStore} from "@/stores/counter";
 
 const form = reactive({
   username: '',
   password: '',
   remember: false
 })
+
+const store = useStore();
 
 const login = () => {
   if (!form.username || !form.password) {
@@ -67,7 +70,12 @@ const login = () => {
       remember: form.remember
     }, (message) => {
       ElMessage.success(message);
-      router.push("/index");
+      get('/api/user/me', (data)=>{
+        store.auth.user = data;
+        router.push('/index')
+      }, ()=>{
+        store.auth.user = null;
+      })
     })
   }
 }
