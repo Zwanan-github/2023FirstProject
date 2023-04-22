@@ -12,8 +12,10 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpSession;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -29,15 +31,25 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     @Autowired
     StringRedisTemplate template;
 
+    // 循环植入
+//    @Autowired
+//    BCryptPasswordEncoder encoder;
+
     @Value("${spring.mail.username}")
     String from;
 
+    /**
+     * 登陆验证
+     * @param username
+     * @return
+     * @throws UsernameNotFoundException
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         if (username == null) {
             throw new UsernameNotFoundException("用户名不能为空");
         }
-        Account account = userMapper.findAccountByNameOrEmail(username);
+        Account account = userMapper.findAccountByName(username);
         if (account == null) {
             throw new UsernameNotFoundException("用户名或者密码错误");
         }
@@ -48,9 +60,14 @@ public class AuthorizeServiceImpl implements AuthorizeService {
                 .build();
     }
 
-
+    /**
+     * 发送验证码
+     * @param email
+     * @param sessionId
+     * @return
+     */
     @Override
-    public boolean sendValidateEmail(String email, String sessionId) {
+    public String sendValidateEmail(String email, String sessionId) {
         /**
          * 1. 先生成对应的验证码
          * 2. 把邮箱和对应的验证码放到Redis中， 过期时间（重复发的间断大于60，重复流程）
@@ -64,9 +81,14 @@ public class AuthorizeServiceImpl implements AuthorizeService {
             Long expire = Optional.ofNullable(template.getExpire(key, TimeUnit.SECONDS)).orElse(0L);
             // 剩余时间大于60，拦截
             if (expire > 60) {
-                return false;
+                return "请勿连续发送邮件";
             }
         }
+        // 如果邮箱使用过，就不能发送
+        if (userMapper.findAccountByEmail(email) != null) {
+            return "此邮箱被使用过";
+        }
+
         Random random = new Random();
         int code = random.nextInt(899999) + 100000;
         SimpleMailMessage message = new SimpleMailMessage();
@@ -77,10 +99,51 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         try{
             mailSender.send(message);
             template.opsForValue().set(key, String.valueOf(code), 2, TimeUnit.MINUTES);
+            return null;
         } catch (MailException e) {
             e.printStackTrace();
-            return false;
+            return "邮件发送失败，请检查邮箱是否有效";
         }
-        return true;
+    }
+
+    /**
+     * 注册功能
+     * @param username
+     * @param password
+     * @param email
+     * @param code
+     * @param sessionId
+     * @return
+     */
+    @Override
+    public String validateAndRegister(String username,
+                                       String password,
+                                       String email,
+                                       String code,
+                                       String sessionId) {
+        // 用户名唯一
+        if (userMapper.findAccountByName(username) != null) {
+            return "用户名已存在";
+        }
+        String key = "email:" + sessionId + ":" + email;
+        if (Boolean.TRUE.equals(template.hasKey(key))){
+            String s = template.opsForValue().get(key);
+            if (s == null) {
+                return "验证码失效";
+            }
+            if (s.equals(code)){
+                BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+                password = encoder.encode(password);
+                if (userMapper.createAccount(username, password, email) > 0) {
+                    return null;
+                }else {
+                    return "内部错误，请联系管理员";
+                }
+            }else {
+                return "验证码错误，请检查一下";
+            }
+        } else {
+            return "请先请求验证码";
+        }
     }
 }
