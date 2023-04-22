@@ -9,7 +9,7 @@
       <el-form :model="form" :rules="rules" @validate="onValidate" ref="formRef">
         <el-form-item prop="username">
           <!--      username-->
-          <el-input v-model="form.username" type="text" placeholder="用户名">
+          <el-input v-model="form.username" :maxlength="20" type="text" placeholder="用户名">
             <template #prefix>
               <el-icon>
                 <User/>
@@ -20,7 +20,7 @@
         </el-form-item>
         <el-form-item prop="password">
           <!--      password-->
-          <el-input v-model="form.password" type="password" placeholder="密码">
+          <el-input v-model="form.password" :maxlength="20" type="password" placeholder="密码">
             <template #prefix>
               <el-icon>
                 <Lock/>
@@ -32,7 +32,7 @@
         <el-form-item prop="password_repeat">
           <!--      re-input-password-->
 
-          <el-input v-model="form.password_repeat" type="password" placeholder="再次输入密码">
+          <el-input v-model="form.password_repeat" :maxlength="20" type="password" placeholder="再次输入密码">
             <template #prefix>
               <el-icon>
                 <Lock/>
@@ -56,7 +56,7 @@
           <!--      code-->
           <el-row style="width: 100%">
             <el-col :span="16" style="text-align: left">
-              <el-input v-model="form.code" type="text" placeholder="请输入验证码">
+              <el-input v-model="form.code" :maxlength="6" type="text" placeholder="请输入验证码">
                 <template #prefix>
                   <el-icon>
                     <EditPen/>
@@ -65,7 +65,9 @@
               </el-input>
             </el-col>
             <el-col :span="8" style="text-align: right">
-              <el-button @click="validateEmail" type="primary" :disabled="!isEmailValid">发送</el-button>
+              <el-button @click="validateEmail" type="primary" :disabled="!isEmailValid || cold > 0">
+                {{ cold > 0 ? '请稍后: ' + cold : "发送验证码" }}
+              </el-button>
             </el-col>
           </el-row>
           <!--      end of code-->
@@ -133,18 +135,30 @@ const formRef = ref();
 const register = () => {
   formRef.value.validate((isValid) => {
     if (isValid) {
-
+      post('/api/auth/register', {
+        username: form.username,
+        password: form.password,
+        email: form.email,
+        code: form.code
+      }, (message)=>{
+        ElMessage.success(message);
+        router.push('/')
+      })
     } else {
       ElMessage.warning('请完整填写表单')
     }
   })
 }
 
+const cold = ref(0);
+
 const validateEmail = ()=> {
   post('api/auth/validate-email', {
     email: form.email
   }, (message)=>{
     ElMessage.success(message);
+    cold.value = 60;
+    setInterval(()=> cold.value--, 1000);
   })
 }
 
