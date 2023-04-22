@@ -1,4 +1,4 @@
-package com.zwan.studyprojectbackend.entity;
+package com.zwan.studyprojectbackend.entity.auth;
 
 import lombok.Data;
 

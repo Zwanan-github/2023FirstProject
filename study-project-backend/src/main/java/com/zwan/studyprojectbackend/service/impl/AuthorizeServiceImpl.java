@@ -1,6 +1,6 @@
 package com.zwan.studyprojectbackend.service.impl;
 
-import com.zwan.studyprojectbackend.entity.Account;
+import com.zwan.studyprojectbackend.entity.auth.Account;
 import com.zwan.studyprojectbackend.mapper.UserMapper;
 import com.zwan.studyprojectbackend.service.AuthorizeService;
 import org.springframework.beans.factory.annotation.Autowired;

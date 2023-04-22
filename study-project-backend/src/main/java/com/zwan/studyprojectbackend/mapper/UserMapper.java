@@ -1,6 +1,6 @@
 package com.zwan.studyprojectbackend.mapper;
 
-import com.zwan.studyprojectbackend.entity.Account;
+import com.zwan.studyprojectbackend.entity.auth.Account;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
