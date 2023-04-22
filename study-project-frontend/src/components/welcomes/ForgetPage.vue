@@ -139,12 +139,14 @@ const formRef = ref();
 const cold = ref(0);
 
 const validateEmail = ()=> {
+  cold.value = 60;
   post('api/auth/validate-reset-email', {
     email: form.email
   }, (message)=>{
     ElMessage.success(message);
-    cold.value = 60;
     setInterval(()=> cold.value--, 1000);
+  }, (message)=>{
+    ElMessage.warning(message);
   })
 }
 

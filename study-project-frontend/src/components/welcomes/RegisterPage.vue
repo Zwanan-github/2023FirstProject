@@ -153,12 +153,16 @@ const register = () => {
 const cold = ref(0);
 
 const validateEmail = ()=> {
+  // 防止连点
+  cold.value = 60;
   post('api/auth/validate-register-email', {
     email: form.email
   }, (message)=>{
     ElMessage.success(message);
-    cold.value = 60;
     setInterval(()=> cold.value--, 1000);
+  }, (message) => {
+    ElMessage.warning(message)
+    cold.value = 0;
   })
 }
 
